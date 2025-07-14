@@ -1,0 +1,12 @@
+# 核心深度學習套件
+torch==2.7.0+cu126
+torchvision==0.22.0+cu126
+
+# 影像處理與輔助工具
+opencv-python>=4.11.0
+numpy>=1.26
+Pillow>=11.2
+matplotlib>=3.10
+
+# 工具與進度條
+tqdm>=4.67
