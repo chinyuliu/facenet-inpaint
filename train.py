@@ -6,61 +6,10 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from model import Generator, Glo_Discriminator, Loc_Discriminator
 from config import HyperParameters
-from utils import compute_time, save_comparison
+from utils import compute_time, save_comparison, save_checkpoint, load_checkpoint
 import random
 import csv
 
-def save_checkpoint(G, Glo_D, Loc_D, G_opt=None, Glo_D_opt=None, Loc_D_opt=None,
-                    epoch=None, G_losses=None, Glo_D_losses=None, Loc_D_losses=None, Val_losses=None,
-                    Glo_G_Adv_losses=None, Loc_G_Adv_losses=None, path=None, name=None, best_loss=None,
-                    early_stop_counter=None, full_checkpoint=False):
-    os.makedirs(path, exist_ok=True)
-    checkpoint = {'G_state_dict': G.state_dict(), 'Glo_D_state_dict': Glo_D.state_dict(),
-        'Loc_D_state_dict': Loc_D.state_dict(),
-    }
-    if full_checkpoint:
-        checkpoint.update({
-            'G_optimizer_state_dict': G_opt.state_dict() if G_opt else None,
-            'Glo_D_optimizer_state_dict': Glo_D_opt.state_dict() if Glo_D_opt else None,
-            'Loc_D_optimizer_state_dict': Loc_D_opt.state_dict() if Loc_D_opt else None,
-            'epoch': epoch,
-            'G_losses': G_losses, 'Glo_D_losses': Glo_D_losses, 'Loc_D_losses': Loc_D_losses,
-            'Val_losses': Val_losses,
-            'Glo_G_Adv_losses': Glo_G_Adv_losses,
-            'Loc_G_Adv_losses': Loc_G_Adv_losses,
-            'best_loss': best_loss,
-            'early_stop_counter': early_stop_counter
-        })
-    tc.save(checkpoint, os.path.join(path, name))
-
-def load_checkpoint(G, Glo_D, Loc_D, G_opt=None, Glo_D_opt=None, Loc_D_opt=None, path=None, name=None, device=None):
-    checkpoint_path = os.path.join(path, name)
-    if not os.path.exists(checkpoint_path):
-        print("沒有找到檢查點，將從頭開始訓練")
-        return 0, [], [], [], [], [], [], float('inf'), 0
-
-    checkpoint = tc.load(checkpoint_path, map_location=device)
-    G.load_state_dict(checkpoint['G_state_dict'])
-    Glo_D.load_state_dict(checkpoint['Glo_D_state_dict'])
-    Loc_D.load_state_dict(checkpoint['Loc_D_state_dict'])
-
-    if 'G_optimizer_state_dict' in checkpoint and G_opt and checkpoint['G_optimizer_state_dict']:
-        G_opt.load_state_dict(checkpoint['G_optimizer_state_dict'])
-        Glo_D_opt.load_state_dict(checkpoint['Glo_D_optimizer_state_dict'])
-        Loc_D_opt.load_state_dict(checkpoint['Loc_D_optimizer_state_dict'])
-        print(f"成功載入檢查點：從第 {checkpoint['epoch'] + 1} epoch 繼續訓練")
-        return (checkpoint['epoch'] + 1,
-                checkpoint.get('G_losses', []),
-                checkpoint.get('Glo_D_losses', []),
-                checkpoint.get('Loc_D_losses', []),
-                checkpoint.get('Val_losses', []),
-                checkpoint.get('Glo_G_Adv_losses', []),
-                checkpoint.get('Loc_G_Adv_losses', []),
-                checkpoint.get('best_loss', float('inf')),
-                checkpoint.get('early_stop_counter', 0))
-    else:
-        print(f"成功載入檢查點：僅模型參數，無法繼續訓練")
-        return 0, [], [], [], [], [], [], float('inf'), 0
 
 def plot_losses(g_losses, glo_d_losses, loc_d_losses, val_losses, save_path):  # 繪製損失曲線
     plt.figure(figsize=(12, 6))
