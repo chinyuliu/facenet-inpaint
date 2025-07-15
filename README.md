@@ -91,7 +91,7 @@ python train.py
 ### 4 . 推論 / 測試
 
 ```bash
-python test.py 
+python3 test.py --model_name G_best.pth
 ```
 
 ---
