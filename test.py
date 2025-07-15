@@ -42,6 +42,14 @@ def plot_compare(original, masked, inpainted, save_path):
     plt.savefig(save_path, bbox_inches='tight')
     plt.close(fig)  # 關閉畫布，避免堆疊
 
+def remove_module_prefix(state_dict):  # 移除 module. 前綴再載入
+    new_state_dict = {}
+    for k, v in state_dict.items():
+        new_key = k.replace('module.', '') if k.startswith('module.') else k
+        new_state_dict[new_key] = v
+    return new_state_dict
+
+
 def test(model_name):
     device = tc.device('cuda' if tc.cuda.is_available() else 'cpu')
     print(f"使用 {device} 進行測試")
@@ -54,7 +62,14 @@ def test(model_name):
         raise FileNotFoundError(f"模型檔案不存在：{model_path}")
     
     G = Generator(H.dc).to(device)
-    G.load_state_dict(tc.load(model_path, map_location=device))
+    # 載入生成器參數
+    checkpoint = tc.load(model_path, map_location=device)
+
+    if False:  # 是否使用DDP做訓練()
+        G.load_state_dict(remove_module_prefix(checkpoint['G_state_dict']))
+    else:
+        G.load_state_dict(checkpoint['G_state_dict'])
+
     G.eval()
     print(f"成功載入 Generator {model_path}")
 
@@ -144,4 +159,4 @@ if __name__ == "__main__":
     args = parse_args()
     test(args.model_name)
 
-# python3 test.py --model_name G_epoch100.pth
+# python3 test.py --model_name G_best.pth
