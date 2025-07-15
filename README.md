@@ -79,13 +79,13 @@ pip install -r requirements.txt
 2. 執行前處理腳本將影像進行裁剪 ：
 
    ```bash
-   python preprocess_celeba.py
+   python3 preprocess_celeba.py
    ```
 
 ### 3 . 開始訓練
 
 ```bash
-python train.py
+python3 train.py
 ```
 
 ### 4 . 推論 / 測試
